@@ -1,0 +1,25 @@
+﻿@using PidroCounterWasm.Services
+@inject PidroCounterStateService PCService
+
+<div style="display: inherit; flex-direction: row; height: inherit; width: inherit; background-color: deepskyblue">
+    <CascadingValue Value="_team1Id">
+        <TeamPanel />
+        <ScoreHistory />
+    </CascadingValue>
+    <div style="height: 100%" class="border border-2 border-left border-secondary"></div>
+   <CascadingValue Value="_team2Id">
+        <ScoreHistory />
+        <TeamPanel />
+   </CascadingValue>
+</div>
+
+@code {
+    private int _team1Id;
+    private int _team2Id;
+
+    protected override void OnInitialized()
+    {
+        _team1Id = PCService.RegisterTeam("Vi");
+        _team2Id = PCService.RegisterTeam("De");
+    }
+}

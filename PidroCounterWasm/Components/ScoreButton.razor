@@ -1,0 +1,21 @@
+﻿@using PidroCounterWasm.Services
+@inherits TeamIdDependant
+@inject PidroCounterStateService PCService
+@inject ToastService ToastService
+
+<Button style="width:inherit; margin: 2px; border:solid; border-color: black; border-width:thin;" 
+    Color="ButtonColor.Secondary" 
+    Size="Size.Large"
+    @onclick="@ScoreButtonClicked">
+        @ScoreValue
+</Button>
+
+@code {
+    [Parameter, EditorRequired]
+    public int ScoreValue { get; set; }
+
+    private void ScoreButtonClicked()
+    {
+        if (!PCService.TryAddScore(TeamId!.Value, ScoreValue)) ToastService.Notify(new(ToastType.Warning, "It is not this team's turn!"));
+    }
+}

@@ -1,0 +1,11 @@
+﻿@inherits TeamIdDependant
+
+<div style="display:inherit; flex-direction: column; width: 100%; height: 100%">
+    @for(var i = 1; i <= 13; i+=2) {
+        var num = i;
+        <div style="display: inherit; flex-direction: row; flex-grow: 1; width: inherit">
+            <ScoreButton ScoreValue="num" />
+            <ScoreButton ScoreValue="num + 1" />
+        </div>
+    }
+</div>

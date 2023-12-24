@@ -1,0 +1,30 @@
+﻿@using PidroCounterWasm.Services
+@implements IDisposable
+@inherits TeamIdDependant
+@inject PidroCounterStateService PCService
+
+<div style="display: inherit; flex-direction: column; height: inherit; width: 4em; margin-left:10px; margin-right:10px">
+    @if (Team is not null)
+    {
+        @foreach (var score in Team.ScoreHistory)
+        {
+            <h3>@score</h3>
+        }
+    }
+</div>
+@code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Team = PCService.GetTeam(TeamId!.Value);
+
+        PCService.OnScoreChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        PCService.OnScoreChange -= StateHasChanged;
+    }
+}
