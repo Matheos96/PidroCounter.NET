@@ -1,4 +1,4 @@
-﻿namespace PidroCounterWasm.Services;
+﻿namespace PidroCounter.NET.Services;
 
 internal sealed class PidroCounterStateService
 {

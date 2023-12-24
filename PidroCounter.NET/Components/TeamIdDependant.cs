@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
-using PidroCounterWasm.Services;
+using PidroCounter.NET.Services;
 
-namespace PidroCounterWasm.Components;
+namespace PidroCounter.NET.Components;
 
 public abstract class TeamIdDependant : ComponentBase
 {
