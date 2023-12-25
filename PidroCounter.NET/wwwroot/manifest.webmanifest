@@ -1,6 +1,6 @@
 {
-  "name": "PidroCounterWasm",
-  "short_name": "PidroCounterWasm",
+  "name": "Pidro Counter .NET",
+  "short_name": "PidroCounter.NET",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

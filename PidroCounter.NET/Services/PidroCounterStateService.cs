@@ -14,14 +14,32 @@ internal sealed class PidroCounterStateService
     internal ReadOnlyTeam GetTeam(int teamId) => _teams[teamId];
     internal int GetScore(int teamId) => _teams[teamId].Score;
 
-    internal bool TryAddScore(int teamId, int score)
+    internal bool TryAddScore(int teamId, int score, out string warningMessage)
     {
-        if (!IsLegalScore(score)) return false;
+        warningMessage = string.Empty;
+        if (!IsLegalScore(score))
+        {
+            warningMessage = Constants.IllegalScore;
+            return false;
+        }
 
         var team = _teams[teamId];
         var other = GetOtherTeam(teamId);
-        if ((team.ScoreHistory.Count != other.ScoreHistory.Count - 1) && (team.ScoreHistory.Count != other.ScoreHistory.Count)) return false;
-        if ((team.ScoreHistory.Count == other.ScoreHistory.Count - 1) && other.ScoreHistory.TryPeek(out var lastOther) && score >= 0 && lastOther + score != 14) return false;
+        if (other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int lastOther) && lastOther == 14)
+        {
+            team.AddScore(0); // Last round's score
+        }
+
+        if ((team.ScoreHistory.Count != other.ScoreHistory.Count - 1) && (team.ScoreHistory.Count != other.ScoreHistory.Count))
+        {
+            warningMessage = Constants.NotInTurn;
+            return false;
+        }
+        if ((team.ScoreHistory.Count == other.ScoreHistory.Count - 1) && other.ScoreHistory.TryPeek(out lastOther) && score >= 0 && lastOther + score != 14)
+        {
+            warningMessage = Constants.NotPossible;
+            return false;
+        }
 
         team.AddScore(score);
         OnScoreChange?.Invoke();
@@ -33,6 +51,13 @@ internal sealed class PidroCounterStateService
 
     private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
     private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
+
+    private static class Constants
+    {
+        public const string IllegalScore = "The score to be added must be in the range 0 <= score <= 14!";
+        public const string NotInTurn = "It's not this team's turn!";
+        public const string NotPossible = "Considering the other team's previous score, that is not possible...";
+    }
 }
 
 public class ReadOnlyTeam(Team team)
@@ -41,7 +66,7 @@ public class ReadOnlyTeam(Team team)
 
     internal string Name => _team.Name;
     internal int Score => _team.Score;
-    internal IReadOnlyList<int> ScoreHistory => _team.ScoreHistory.ToList();
+    internal IReadOnlyList<int> ScoreHistory => _team.ScoreHistory.Reverse().ToList();
 }
 
 public record Team(string Name)

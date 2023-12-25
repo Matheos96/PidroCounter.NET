@@ -1,0 +1,15 @@
+<div style="display: inherit; flex-direction: column; justify-content: flex-end;">
+    <div style="height: 100%; margin-bottom: 2px; position: absolute; left: 50%; margin-left: -2px; z-index:0;"
+        class="border-start border-2 border-secondary"></div>
+
+    <Button style="width:100%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;" w
+        Color="ButtonColor.Success" Size="Size.Large" @onclick="OnModeButtonClick">
+        @(_mode == 1 ? "Normal" : "Reverse")
+    </Button>
+</div>
+
+@code {
+    private int _mode = 1;
+
+    private void OnModeButtonClick() => _mode ^= 1;
+}
