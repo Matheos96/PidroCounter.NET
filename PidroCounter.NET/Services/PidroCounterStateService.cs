@@ -25,9 +25,14 @@ internal sealed class PidroCounterStateService
 
         var team = _teams[teamId];
         var other = GetOtherTeam(teamId);
-        if (other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int lastOther) && lastOther == 14)
+        if (other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int last) && last == 14)
         {
             team.AddScore(0); // Last round's score
+        }
+
+        if (team.ScoreHistory.Count - 1 == other.ScoreHistory.Count && team.ScoreHistory.TryPeek(out last) && last == 14)
+        {
+            other.AddScore(0); // Last round's score
         }
 
         if ((team.ScoreHistory.Count != other.ScoreHistory.Count - 1) && (team.ScoreHistory.Count != other.ScoreHistory.Count))
@@ -35,7 +40,7 @@ internal sealed class PidroCounterStateService
             warningMessage = Constants.NotInTurn;
             return false;
         }
-        if ((team.ScoreHistory.Count == other.ScoreHistory.Count - 1) && other.ScoreHistory.TryPeek(out lastOther) && score >= 0 && lastOther + score != 14)
+        if ((team.ScoreHistory.Count == other.ScoreHistory.Count - 1) && other.ScoreHistory.TryPeek(out last) && score >= 0 && last + score != 14)
         {
             warningMessage = Constants.NotPossible;
             return false;

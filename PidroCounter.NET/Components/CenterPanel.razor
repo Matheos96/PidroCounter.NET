@@ -1,15 +1,36 @@
-<div style="display: inherit; flex-direction: column; justify-content: flex-end;">
-    <div style="height: 100%; margin-bottom: 2px; position: absolute; left: 50%; margin-left: -2px; z-index:0;"
-        class="border-start border-2 border-secondary"></div>
+<div style="display: inherit; flex-direction: column; align-items: center; width: 20%">
+    <div class="d-flex flex-row h-100 w-100 justify-content-around">
+        <CascadingValue Value="Team1Id">
+            <ScoreHistory />
+        </CascadingValue>
+        <div style="position: absolute; left: 50%; margin-left: -2px; z-index:0;"
+             class="border-start border-2 border-secondary h-100 mb-3"></div>
+        <CascadingValue Value="Team2Id">
+            <ScoreHistory />
+        </CascadingValue>
+    </div>
 
-    <Button style="width:100%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;"
-        Color="ButtonColor.Success" Size="Size.Large" @onclick="OnModeButtonClick">
+    <Button style="width:80%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;"
+            Color="@(_mode == 1 ? ButtonColor.Success : ButtonColor.Warning)" Size="Size.Large" @onclick="OnModeButtonClick">
         @(_mode == 1 ? "Normal" : "Reverse")
+    </Button>
+
+    <Button style="width:80%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;"
+            Color="ButtonColor.Danger" Size="Size.Large" @onclick="OnResetClick">
+        Reset
     </Button>
 </div>
 
 @code {
+    [Parameter, EditorRequired]
+    public int? Team1Id { get; set; }
+
+    [Parameter, EditorRequired]
+    public int? Team2Id { get; set; }
+
     private int _mode = 1;
 
     private void OnModeButtonClick() => _mode ^= 1;
+
+    private void OnResetClick() => Console.WriteLine("HEJ");
 }

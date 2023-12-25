@@ -4,11 +4,9 @@
 <div style="display: inherit; flex-direction: row; height: inherit; width: inherit; background-color: deepskyblue">
     <CascadingValue Value="_team1Id">
         <TeamPanel />
-        <ScoreHistory />
     </CascadingValue>
-    <CenterPanel />
+    <CenterPanel Team1Id="_team1Id" Team2Id="_team2Id" />
     <CascadingValue Value="_team2Id">
-        <ScoreHistory />
         <TeamPanel />
     </CascadingValue>
 </div>

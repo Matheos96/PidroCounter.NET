@@ -4,7 +4,8 @@
 @inject PidroCounterStateService PCService
 
 <div
-    style="display: inherit; flex-direction: column; height: inherit; width: 4em; margin-top: 2px; margin-left:10px; margin-right:10px">
+    class="d-flex flex-column align-items-center"
+    style="height: inherit; width: 5em; margin-top: 2px; margin-left:10px; margin-right:10px">
     @if (Team is not null)
     {
         @foreach (var score in Team.ScoreHistory)
