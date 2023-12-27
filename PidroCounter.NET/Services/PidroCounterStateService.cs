@@ -1,4 +1,6 @@
-﻿namespace PidroCounter.NET.Services;
+﻿using PidroCounter.NET.Components;
+
+namespace PidroCounter.NET.Services;
 
 internal sealed class PidroCounterStateService
 {
@@ -16,7 +18,7 @@ internal sealed class PidroCounterStateService
     internal ReadOnlyTeam GetTeam(int teamId) => _teams[teamId];
     internal int GetScore(int teamId) => _teams[teamId].Score;
 
-    internal bool TryAddScore(int teamId, int score, out string warningMessage)
+    internal bool TryAddScore(int teamId, int score, out string warningMessage, bool addZeroes = true)
     {
         warningMessage = string.Empty;
         score = ScoreMode == ScoreMode.Normal ? score : -score;
@@ -28,10 +30,17 @@ internal sealed class PidroCounterStateService
 
         var team = _teams[teamId];
         var other = GetOtherTeam(teamId);
-        if (((other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int last)) ||
-            (team.ScoreHistory.Count - 1 == other.ScoreHistory.Count && team.ScoreHistory.TryPeek(out last))) && last == 14)
+        if (addZeroes)
         {
-            team.AddScore(0); // Last round's score
+            if (other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int last) && last == 14)
+            {
+                team.AddScore(0); // Last round's score
+            }
+
+            if (team.ScoreHistory.Count - 1 == other.ScoreHistory.Count && team.ScoreHistory.TryPeek(out last) && last == 14)
+            {
+                other.AddScore(0); // Last round's score
+            }
         }
 
         if ((team.ScoreHistory.Count != other.ScoreHistory.Count - 1) && (team.ScoreHistory.Count != other.ScoreHistory.Count))
@@ -41,7 +50,7 @@ internal sealed class PidroCounterStateService
         }
         if (team.ScoreHistory.Count == other.ScoreHistory.Count - 1)
         {
-            if (score < 0 && other.ScoreHistory.TryPeek(out last) && last < 0)
+            if (score < 0 && other.ScoreHistory.TryPeek(out var last) && last < 0)
             {
                 warningMessage = Constants.BothCannotReverse;
                 return false;
@@ -56,6 +65,14 @@ internal sealed class PidroCounterStateService
         team.AddScore(score);
         OnScoreChange?.Invoke();
         return true;
+    }
+
+    public bool IsUnclearSituation(int teamId)
+        => ScoreMode == ScoreMode.Revese && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
+    public void ResetScores()
+    {
+        foreach (var team in _teams) team.ScoreHistory.Clear();
+        OnScoreChange?.Invoke();
     }
 
     internal event Action? OnScoreChange;

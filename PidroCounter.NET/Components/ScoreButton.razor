@@ -3,6 +3,16 @@
 @inject PidroCounterStateService PCService
 @inject ToastService ToastService
 
+<Modal @ref="_modal" Title="Let's clear something up..." ShowCloseButton="false" CloseOnEscape="false">
+    <BodyTemplate>
+        Does this score belong to the previous or next round?
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Primary" @onclick="OnNextClick">Previous</Button>
+        <Button Color="ButtonColor.Primary" @onclick="OnPreviousClick">Next</Button>
+    </FooterTemplate>
+</Modal>
+
 <Button style="width:inherit; margin: 2px; border:solid; border-color: black; border-width:thin;"
     Color="ButtonColor.Secondary" Size="Size.Large" @onclick="@ScoreButtonClicked">
     @ScoreValue
@@ -12,9 +22,31 @@
     [Parameter, EditorRequired]
     public int ScoreValue { get; set; }
 
-    private void ScoreButtonClicked()
+    private Modal _modal = default!;
+
+    private async Task ScoreButtonClicked()
     {
-        if (!PCService.TryAddScore(TeamId!.Value, ScoreValue, out var warning)) ToastService.Notify(new(ToastType.Warning,
-        warning));
+        if (PCService.IsUnclearSituation(TeamId!.Value))
+        {
+            await _modal.ShowAsync();
+            return;
+        }
+
+        AddScore();
+    }
+
+    private void AddScore(bool addZeroes = true)
+    {
+        if (!PCService.TryAddScore(TeamId!.Value, ScoreValue, out var warning, addZeroes))
+            ToastService.Notify(new(ToastType.Warning,
+            warning));
+    }
+
+    private async Task OnNextClick() => await CloseAndResolve(true);
+    private async Task OnPreviousClick() => await CloseAndResolve(false);
+    private async Task CloseAndResolve(bool addZeroes)
+    {
+        AddScore(addZeroes);
+        await _modal.HideAsync();
     }
 }
