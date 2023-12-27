@@ -3,8 +3,7 @@
 @inherits TeamIdDependant
 @inject PidroCounterStateService PCService
 
-<div
-    class="d-flex flex-column align-items-center"
+<div class="d-flex flex-column align-items-center"
     style="height: inherit; width: 5em; margin-top: 2px; margin-left:10px; margin-right:10px">
     @if (Team is not null)
     {
@@ -22,11 +21,11 @@
 
         Team = PCService.GetTeam(TeamId!.Value);
 
-        PCService.OnScoreChange += StateHasChanged;
+        PCService.OnScoreChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        PCService.OnScoreChange -= StateHasChanged;
+        PCService.OnScoreChanged -= StateHasChanged;
     }
 }

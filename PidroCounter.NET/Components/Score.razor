@@ -17,11 +17,11 @@
     {
         base.OnInitialized();
         Team = PCService.GetTeam(TeamId!.Value);
-        PCService.OnScoreChange += StateHasChanged;
+        PCService.OnScoreChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        PCService.OnScoreChange -= StateHasChanged;
+        PCService.OnScoreChanged -= StateHasChanged;
     }
 }

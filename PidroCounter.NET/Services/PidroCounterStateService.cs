@@ -1,16 +1,29 @@
-﻿using PidroCounter.NET.Components;
+﻿using System.Text.Json;
+using Microsoft.JSInterop;
+using PidroCounter.NET.Extensions;
 
 namespace PidroCounter.NET.Services;
 
 internal sealed class PidroCounterStateService
 {
+    private readonly IJSInProcessRuntime _js;
     private readonly Team[] _teams = new Team[2];
 
     internal ScoreMode ScoreMode { get; set; }
 
+    public PidroCounterStateService(IJSRuntime jSRuntime)
+    {
+        _js = (IJSInProcessRuntime)jSRuntime;
+        OnScoreChanged += SaveState;
+        RestoreState();
+    }
+
+    private static int nextId = 0;
     internal int RegisterTeam(string name)
     {
         var id = _teams.Count(t => t is not null);
+        if (id == 2) return nextId++; // When existing teams are registered through deserialization
+
         _teams[id] = new Team(name);
         return id;
     }
@@ -63,7 +76,8 @@ internal sealed class PidroCounterStateService
         }
 
         team.AddScore(score);
-        OnScoreChange?.Invoke();
+        OnScoreChanged?.Invoke();
+        SaveState();
         return true;
     }
 
@@ -72,16 +86,44 @@ internal sealed class PidroCounterStateService
     public void ResetScores()
     {
         foreach (var team in _teams) team.ScoreHistory.Clear();
-        OnScoreChange?.Invoke();
+        OnScoreChanged?.Invoke();
     }
 
-    internal event Action? OnScoreChange;
+    internal event Action? OnScoreChanged;
 
     private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
     private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
 
+    private void SaveState()
+    {
+        if (_teams.Length != 2) return;
+
+        var json = JsonSerializer.Serialize(new PidroState
+        {
+            Team1 = _teams[0],
+            Team2 = _teams[1]
+        });
+        _js.SetLocalStorage(Constants.LsKey, json);
+    }
+
+    private void RestoreState()
+    {
+        var json = _js.GetLocalStorage(Constants.LsKey);
+        if (json is null) return;
+
+        var state = JsonSerializer.Deserialize<PidroState>(json);
+        if (state?.Team1 is not null) _teams[0] = state.Team1;
+        if (state?.Team2 is not null) _teams[1] = state.Team2;
+    }
+
+    private class PidroState
+    {
+        public Team? Team1 { get; set; }
+        public Team? Team2 { get; set; }
+    }
     private static class Constants
     {
+        public const string LsKey = "pidro-state";
         public const string IllegalScore = "The score to be added must be in the range 0 <= score <= 14!";
         public const string NotInTurn = "It's not this team's turn!";
         public const string NotPossible = "Considering the other team's previous score, that is not possible...";
@@ -100,7 +142,7 @@ public class ReadOnlyTeam(Team team)
 
 public record Team(string Name)
 {
-    internal Stack<int> ScoreHistory { get; } = new();
+    public Stack<int> ScoreHistory { get; set; } = new();
     internal int Score => ScoreHistory.Sum();
     internal void AddScore(int score) => ScoreHistory.Push(score);
 
