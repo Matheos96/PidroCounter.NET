@@ -4,6 +4,8 @@ internal sealed class PidroCounterStateService
 {
     private readonly Team[] _teams = new Team[2];
 
+    internal ScoreMode ScoreMode { get; set; }
+
     internal int RegisterTeam(string name)
     {
         var id = _teams.Count(t => t is not null);
@@ -17,6 +19,7 @@ internal sealed class PidroCounterStateService
     internal bool TryAddScore(int teamId, int score, out string warningMessage)
     {
         warningMessage = string.Empty;
+        score = ScoreMode == ScoreMode.Normal ? score : -score;
         if (!IsLegalScore(score))
         {
             warningMessage = Constants.IllegalScore;
@@ -25,14 +28,10 @@ internal sealed class PidroCounterStateService
 
         var team = _teams[teamId];
         var other = GetOtherTeam(teamId);
-        if (other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int last) && last == 14)
+        if (((other.ScoreHistory.Count - 1 == team.ScoreHistory.Count && other.ScoreHistory.TryPeek(out int last)) ||
+            (team.ScoreHistory.Count - 1 == other.ScoreHistory.Count && team.ScoreHistory.TryPeek(out last))) && last == 14)
         {
             team.AddScore(0); // Last round's score
-        }
-
-        if (team.ScoreHistory.Count - 1 == other.ScoreHistory.Count && team.ScoreHistory.TryPeek(out last) && last == 14)
-        {
-            other.AddScore(0); // Last round's score
         }
 
         if ((team.ScoreHistory.Count != other.ScoreHistory.Count - 1) && (team.ScoreHistory.Count != other.ScoreHistory.Count))
@@ -40,10 +39,18 @@ internal sealed class PidroCounterStateService
             warningMessage = Constants.NotInTurn;
             return false;
         }
-        if ((team.ScoreHistory.Count == other.ScoreHistory.Count - 1) && other.ScoreHistory.TryPeek(out last) && score >= 0 && last + score != 14)
+        if (team.ScoreHistory.Count == other.ScoreHistory.Count - 1)
         {
-            warningMessage = Constants.NotPossible;
-            return false;
+            if (score < 0 && other.ScoreHistory.TryPeek(out last) && last < 0)
+            {
+                warningMessage = Constants.BothCannotReverse;
+                return false;
+            }
+            if (other.ScoreHistory.TryPeek(out last) && score >= 0 && last >= 0 && last + score != 14)
+            {
+                warningMessage = Constants.NotPossible;
+                return false;
+            }
         }
 
         team.AddScore(score);
@@ -53,7 +60,6 @@ internal sealed class PidroCounterStateService
 
     internal event Action? OnScoreChange;
 
-
     private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
     private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
 
@@ -62,6 +68,7 @@ internal sealed class PidroCounterStateService
         public const string IllegalScore = "The score to be added must be in the range 0 <= score <= 14!";
         public const string NotInTurn = "It's not this team's turn!";
         public const string NotPossible = "Considering the other team's previous score, that is not possible...";
+        public const string BothCannotReverse = "Both teams can not reverse on the same round...";
     }
 }
 
@@ -83,4 +90,4 @@ public record Team(string Name)
     public static implicit operator ReadOnlyTeam(Team team) => new(team);
 }
 
-
+public enum ScoreMode { Normal, Revese }
