@@ -3,24 +3,44 @@
 @inherits TeamIdDependant
 @inject PidroCounterStateService PCService
 
+<Modal @ref="_modal" Title="Edit Team Name" ShowCloseButton="true">
+    <BodyTemplate>
+        <InputText @bind-Value="_teamNameInput" />
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnCancelClick">Cancel</Button>
+        <Button Color="ButtonColor.Primary" @onclick="OnSetClick">Set</Button>
+    </FooterTemplate>
+</Modal>
+
 <div class="d-flex flex-column align-items-center justify-content-between w-100 mb-2 pt-2" style="height: 10%">
-    <h2>@TeamName</h2>
+    <h2 @onclick="OnTeamNameClick">@_teamName</h2>
     <h2>@ScoreValue</h2>
 </div>
 
 @code {
-    private string? TeamName => Team?.Name;
+    private string? _teamName;
+    private string? _teamNameInput;
     private int ScoreValue => Team?.Score ?? 0;
+
+    private Modal _modal = default!;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         Team = PCService.GetTeam(TeamId!.Value);
+        _teamName = Team?.Name;
+
         PCService.OnScoreChanged += StateHasChanged;
     }
+    public void Dispose() => PCService.OnScoreChanged -= StateHasChanged;
 
-    public void Dispose()
+    private async Task OnTeamNameClick() => await _modal.ShowAsync();
+    private async Task OnSetClick()
     {
-        PCService.OnScoreChanged -= StateHasChanged;
+        if (!string.IsNullOrWhiteSpace(_teamNameInput)) _teamName = _teamNameInput;
+        _teamNameInput = null;
+        await _modal.HideAsync();
     }
+    private async Task OnCancelClick() => await _modal.HideAsync();
 }
