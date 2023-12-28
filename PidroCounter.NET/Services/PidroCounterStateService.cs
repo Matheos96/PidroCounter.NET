@@ -82,7 +82,7 @@ internal sealed class PidroCounterStateService
     }
 
     public bool IsUnclearSituation(int teamId)
-        => ScoreMode == ScoreMode.Revese && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
+        => ScoreMode == ScoreMode.Reverse && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
     public void ResetScores()
     {
         foreach (var team in _teams) team.ScoreHistory.Clear();
@@ -94,6 +94,7 @@ internal sealed class PidroCounterStateService
     private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
     private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
 
+    #region Save/Restore State + Serialization
     private void SaveState()
     {
         if (_teams.Length != 2) return;
@@ -121,6 +122,8 @@ internal sealed class PidroCounterStateService
         public Team? Team1 { get; set; }
         public Team? Team2 { get; set; }
     }
+    #endregion
+
     private static class Constants
     {
         public const string LsKey = "pidro-state";
@@ -149,4 +152,4 @@ public record Team(string Name)
     public static implicit operator ReadOnlyTeam(Team team) => new(team);
 }
 
-public enum ScoreMode { Normal, Revese }
+public enum ScoreMode { Normal, Reverse }

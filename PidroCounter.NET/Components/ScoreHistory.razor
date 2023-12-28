@@ -3,8 +3,8 @@
 @inherits TeamIdDependant
 @inject PidroCounterStateService PCService
 
-<div class="d-flex flex-column align-items-center"
-    style="height: inherit; width: 5em; margin-top: 2px; margin-left:10px; margin-right:10px">
+<div class="d-flex flex-column align-items-center h-inherit"
+    style="width: 5em; margin-top: 2px; margin-left:10px; margin-right:10px">
     @if (Team is not null)
     {
         @foreach (var score in Team.ScoreHistory)

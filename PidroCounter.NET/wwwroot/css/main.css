@@ -1,0 +1,9 @@
+.w-inherit {
+    width: inherit;
+}
+.h-inherit {
+    height: inherit;
+}
+.bg-pidrocounter {
+    background-color: rgba(131,206,219,255);
+}
