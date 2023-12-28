@@ -1,15 +1,19 @@
 ﻿using System.Text.Json;
 using Microsoft.JSInterop;
 using PidroCounter.NET.Extensions;
+using PidroCounter.NET.Shared;
 
 namespace PidroCounter.NET.Services;
 
-internal sealed class PidroCounterStateService
+internal sealed class PidroCounterStateService : IDisposable
 {
+    #region Private members
     private readonly IJSInProcessRuntime _js;
     private readonly Team[] _teams = new Team[2];
+    #endregion
 
     internal ScoreMode ScoreMode { get; set; }
+    internal event Action? OnScoreChanged;
 
     public PidroCounterStateService(IJSRuntime jSRuntime)
     {
@@ -18,17 +22,26 @@ internal sealed class PidroCounterStateService
         RestoreState();
     }
 
+    public void Dispose() => OnScoreChanged -= SaveState; // May be rather redundant but oh well...
+
+    public bool IsUnclearSituation(int teamId)
+    => ScoreMode == ScoreMode.Reverse && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
+
+    #region Team manipulation and fetching
     private static int nextId = 0;
     internal int RegisterTeam(string name)
     {
         var id = _teams.Count(t => t is not null);
-        if (id == 2) return nextId++; // When existing teams are registered through deserialization
+        if (id == 2) return nextId++; // When existing teams are registered through RestoreState
 
         _teams[id] = new Team(name);
         return id;
     }
 
     internal ReadOnlyTeam GetTeam(int teamId) => _teams[teamId];
+    #endregion
+
+    #region Score manipulation and fetching
     internal int GetScore(int teamId) => _teams[teamId].Score;
 
     internal bool TryAddScore(int teamId, int score, out string warningMessage, bool addZeroes = true)
@@ -81,18 +94,12 @@ internal sealed class PidroCounterStateService
         return true;
     }
 
-    public bool IsUnclearSituation(int teamId)
-        => ScoreMode == ScoreMode.Reverse && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
     public void ResetScores()
     {
         foreach (var team in _teams) team.ScoreHistory.Clear();
         OnScoreChanged?.Invoke();
     }
-
-    internal event Action? OnScoreChanged;
-
-    private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
-    private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
+    #endregion
 
     #region Save/Restore State + Serialization
     private void SaveState()
@@ -104,12 +111,12 @@ internal sealed class PidroCounterStateService
             Team1 = _teams[0],
             Team2 = _teams[1]
         });
-        _js.SetLocalStorage(Constants.LsKey, json);
+        _js.SetLocalStorage(Constants.LocalStorageKey, json);
     }
 
     private void RestoreState()
     {
-        var json = _js.GetLocalStorage(Constants.LsKey);
+        var json = _js.GetLocalStorage(Constants.LocalStorageKey);
         if (json is null) return;
 
         var state = JsonSerializer.Deserialize<PidroState>(json);
@@ -124,32 +131,21 @@ internal sealed class PidroCounterStateService
     }
     #endregion
 
+    #region Private helper methods
+    private static bool IsLegalScore(int score) => score >= -14 && score <= 14;
+    private Team GetOtherTeam(int currentTeamId) => _teams[currentTeamId ^ 1];
+    #endregion
+
+    #region Private Constants
     private static class Constants
     {
-        public const string LsKey = "pidro-state";
+        public const string LocalStorageKey = "pidro-state";
+
+        // Messages
         public const string IllegalScore = "The score to be added must be in the range 0 <= score <= 14!";
         public const string NotInTurn = "It's not this team's turn!";
         public const string NotPossible = "Considering the other team's previous score, that is not possible...";
         public const string BothCannotReverse = "Both teams can not reverse on the same round...";
     }
+    #endregion
 }
-
-public class ReadOnlyTeam(Team team)
-{
-    private readonly Team _team = team;
-
-    internal string Name => _team.Name;
-    internal int Score => _team.Score;
-    internal IReadOnlyList<int> ScoreHistory => _team.ScoreHistory.Reverse().ToList();
-}
-
-public record Team(string Name)
-{
-    public Stack<int> ScoreHistory { get; set; } = new();
-    internal int Score => ScoreHistory.Sum();
-    internal void AddScore(int score) => ScoreHistory.Push(score);
-
-    public static implicit operator ReadOnlyTeam(Team team) => new(team);
-}
-
-public enum ScoreMode { Normal, Reverse }

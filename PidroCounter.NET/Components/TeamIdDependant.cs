@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using PidroCounter.NET.Services;
+using PidroCounter.NET.Shared;
 
 namespace PidroCounter.NET.Components;
 
