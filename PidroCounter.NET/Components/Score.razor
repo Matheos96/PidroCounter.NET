@@ -31,14 +31,18 @@
         Team = PCService.GetTeam(TeamId!.Value);
         _teamName = Team?.Name;
 
-        PCService.OnScoreChanged += StateHasChanged;
+        PCService.OnStateChanged += StateHasChanged;
     }
-    public void Dispose() => PCService.OnScoreChanged -= StateHasChanged;
+    public void Dispose() => PCService.OnStateChanged -= StateHasChanged;
 
     private async Task OnTeamNameClick() => await _modal.ShowAsync();
     private async Task OnSetClick()
     {
-        if (!string.IsNullOrWhiteSpace(_teamNameInput)) _teamName = _teamNameInput;
+        if (!string.IsNullOrWhiteSpace(_teamNameInput))
+        {
+            _teamName = _teamNameInput;
+            PCService.SetTeamName(TeamId!.Value, _teamName);
+        }
         _teamNameInput = null;
         await _modal.HideAsync();
     }

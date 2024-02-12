@@ -21,11 +21,11 @@
 
         Team = PCService.GetTeam(TeamId!.Value);
 
-        PCService.OnScoreChanged += StateHasChanged;
+        PCService.OnStateChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        PCService.OnScoreChanged -= StateHasChanged;
+        PCService.OnStateChanged -= StateHasChanged;
     }
 }

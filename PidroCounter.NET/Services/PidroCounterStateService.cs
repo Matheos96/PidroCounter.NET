@@ -11,15 +11,15 @@ internal sealed class PidroCounterStateService : IDisposable
     #endregion
 
     internal ScoreMode ScoreMode { get; set; }
-    internal event Action? OnScoreChanged;
+    internal event Action? OnStateChanged;
 
     public PidroCounterStateService()
     {
-        OnScoreChanged += SaveState;
+        OnStateChanged += SaveState;
         RestoreState();
     }
 
-    public void Dispose() => OnScoreChanged -= SaveState; // May be rather redundant but oh well...
+    public void Dispose() => OnStateChanged -= SaveState; // May be rather redundant but oh well...
 
     public bool IsUnclearSituation(int teamId)
         => ScoreMode == ScoreMode.Reverse
@@ -38,6 +38,12 @@ internal sealed class PidroCounterStateService : IDisposable
     }
 
     internal ReadOnlyTeam GetTeam(int teamId) => _teams[teamId];
+
+    internal void SetTeamName(int teamId, string newName)
+    {
+        _teams[teamId].Name = newName;
+        OnStateChanged?.Invoke();
+    }
     #endregion
 
     #region Score manipulation and fetching
@@ -88,7 +94,7 @@ internal sealed class PidroCounterStateService : IDisposable
         }
 
         team.AddScore(score);
-        OnScoreChanged?.Invoke();
+        OnStateChanged?.Invoke();
         SaveState();
         return true;
     }
@@ -96,7 +102,7 @@ internal sealed class PidroCounterStateService : IDisposable
     public void ResetScores()
     {
         foreach (var team in _teams) team.ScoreHistory.Clear();
-        OnScoreChanged?.Invoke();
+        OnStateChanged?.Invoke();
     }
     #endregion
 

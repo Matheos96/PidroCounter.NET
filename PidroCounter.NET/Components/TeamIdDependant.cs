@@ -7,7 +7,7 @@ public abstract class TeamIdDependant : ComponentBase
 {
     [CascadingParameter, EditorRequired] public int? TeamId { get; set; }
 
-    protected ReadOnlyTeam? Team { get; set; }
+    private protected ReadOnlyTeam? Team { get; set; }
 
     protected override void OnInitialized()
     {
