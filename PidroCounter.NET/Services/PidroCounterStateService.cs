@@ -1,23 +1,20 @@
 ﻿using System.Text.Json;
-using Microsoft.JSInterop;
-using PidroCounter.NET.Extensions;
 using PidroCounter.NET.Shared;
+using PidroCounter.NET.Shared.Utils;
 
 namespace PidroCounter.NET.Services;
 
 internal sealed class PidroCounterStateService : IDisposable
 {
     #region Private members
-    private readonly IJSInProcessRuntime _js;
     private readonly Team[] _teams = new Team[2];
     #endregion
 
     internal ScoreMode ScoreMode { get; set; }
     internal event Action? OnScoreChanged;
 
-    public PidroCounterStateService(IJSRuntime jSRuntime)
+    public PidroCounterStateService()
     {
-        _js = (IJSInProcessRuntime)jSRuntime;
         OnScoreChanged += SaveState;
         RestoreState();
     }
@@ -25,7 +22,9 @@ internal sealed class PidroCounterStateService : IDisposable
     public void Dispose() => OnScoreChanged -= SaveState; // May be rather redundant but oh well...
 
     public bool IsUnclearSituation(int teamId)
-    => ScoreMode == ScoreMode.Reverse && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther) && lastOther == 14;
+        => ScoreMode == ScoreMode.Reverse
+        && GetOtherTeam(teamId).ScoreHistory.TryPeek(out var lastOther)
+        && lastOther == 14;
 
     #region Team manipulation and fetching
     private static int nextId = 0;
@@ -106,20 +105,18 @@ internal sealed class PidroCounterStateService : IDisposable
     {
         if (_teams.Length != 2) return;
 
-        var json = JsonSerializer.Serialize(new PidroState
+        Ls.SetItem(Constants.LocalStorageKey, new PidroState
         {
             Team1 = _teams[0],
             Team2 = _teams[1]
         });
-        _js.SetLocalStorage(Constants.LocalStorageKey, json);
     }
 
     private void RestoreState()
     {
-        var json = _js.GetLocalStorage(Constants.LocalStorageKey);
-        if (json is null) return;
+        var state = Ls.GetItem<PidroState>(Constants.LocalStorageKey);
+        if (state is null) return;
 
-        var state = JsonSerializer.Deserialize<PidroState>(json);
         if (state?.Team1 is not null) _teams[0] = state.Team1;
         if (state?.Team2 is not null) _teams[1] = state.Team2;
     }
