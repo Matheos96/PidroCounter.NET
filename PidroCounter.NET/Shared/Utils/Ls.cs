@@ -9,7 +9,7 @@ internal static partial class Ls
     [JSImport("globalThis.localStorage.setItem")]
     internal static partial void SetItem(string key, string value);
 
-    internal static T? GetItem<T>(string key) => JsonSerializer.Deserialize<T>(GetItem(key));
+    internal static T? GetItem<T>(string key) => GetItem(key) is {} item ? JsonSerializer.Deserialize<T>(item) : default;
 
     [JSImport("globalThis.localStorage.getItem")]
     internal static partial string GetItem(string key);
