@@ -1,6 +1,6 @@
 ﻿@using PidroCounter.NET.Services
 @inherits TeamIdDependant
-@inject PidroCounterStateService PCService
+@inject PidroCounterStateService PcService
 @inject ToastService ToastService
 
 <Modal @ref="_modal" Title="Let's clear something up..." ShowCloseButton="false" CloseOnEscape="false">
@@ -14,7 +14,7 @@
 </Modal>
 
 <Button style="width:inherit; margin: 2px; border:solid; border-color: black; border-width:thin;"
-    Color="ButtonColor.Secondary" Size="Size.Large" @onclick="@ScoreButtonClicked">
+    Color="ButtonColor.Secondary" Size="ButtonSize.Large" @onclick="@ScoreButtonClicked">
     @ScoreValue
 </Button>
 
@@ -26,7 +26,7 @@
 
     private async Task ScoreButtonClicked()
     {
-        if (PCService.IsUnclearSituation(TeamId!.Value))
+        if (PcService.IsUnclearSituation(TeamId!.Value))
         {
             await _modal.ShowAsync();
             return;
@@ -37,7 +37,7 @@
 
     private void AddScore(bool addZeroes = true)
     {
-        if (!PCService.TryAddScore(TeamId!.Value, ScoreValue, out var warning, addZeroes))
+        if (!PcService.TryAddScore(TeamId!.Value, ScoreValue, out var warning, addZeroes))
             ToastService.Notify(new(ToastType.Warning,
             warning));
     }

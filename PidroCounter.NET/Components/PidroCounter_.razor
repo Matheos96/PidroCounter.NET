@@ -1,5 +1,5 @@
 ﻿@using PidroCounter.NET.Services
-@inject PidroCounterStateService PCService
+@inject PidroCounterStateService PcService
 
 <div class="d-flex flex-row h-inherit w-inherit bg-pidrocounter">
     <CascadingValue Value="_team1Id">
@@ -17,7 +17,7 @@
 
     protected override void OnInitialized()
     {
-        _team1Id = PCService.RegisterTeam("We");
-        _team2Id = PCService.RegisterTeam("They");
+        _team1Id = PcService.RegisterTeam("We");
+        _team2Id = PcService.RegisterTeam("They");
     }
 }

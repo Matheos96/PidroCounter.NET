@@ -1,7 +1,7 @@
 ﻿@using PidroCounter.NET.Services
 @implements IDisposable
 @inherits TeamIdDependant
-@inject PidroCounterStateService PCService
+@inject PidroCounterStateService PcService
 
 <Modal @ref="_modal" Title="Edit Team Name" ShowCloseButton="true">
     <BodyTemplate>
@@ -23,17 +23,17 @@
     private string? _teamNameInput;
     private int ScoreValue => Team?.Score ?? 0;
 
-    private Modal _modal = default!;
+    private Modal _modal = null!;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        Team = PCService.GetTeam(TeamId!.Value);
+        Team = PcService.GetTeam(TeamId!.Value);
         _teamName = Team?.Name;
 
-        PCService.OnStateChanged += StateHasChanged;
+        PcService.OnStateChanged += StateHasChanged;
     }
-    public void Dispose() => PCService.OnStateChanged -= StateHasChanged;
+    public void Dispose() => PcService.OnStateChanged -= StateHasChanged;
 
     private async Task OnTeamNameClick() => await _modal.ShowAsync();
     private async Task OnSetClick()
@@ -41,7 +41,7 @@
         if (!string.IsNullOrWhiteSpace(_teamNameInput))
         {
             _teamName = _teamNameInput;
-            PCService.SetTeamName(TeamId!.Value, _teamName);
+            PcService.SetTeamName(TeamId!.Value, _teamName);
         }
         _teamNameInput = null;
         await _modal.HideAsync();

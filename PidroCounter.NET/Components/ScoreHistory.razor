@@ -1,7 +1,7 @@
 ﻿@using PidroCounter.NET.Services
 @implements IDisposable
 @inherits TeamIdDependant
-@inject PidroCounterStateService PCService
+@inject PidroCounterStateService PcService
 
 <div class="d-flex flex-column align-items-center h-inherit"
     style="width: 5em; margin-top: 2px; margin-left:10px; margin-right:10px">
@@ -19,13 +19,13 @@
     {
         base.OnInitialized();
 
-        Team = PCService.GetTeam(TeamId!.Value);
+        Team = PcService.GetTeam(TeamId!.Value);
 
-        PCService.OnStateChanged += StateHasChanged;
+        PcService.OnStateChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        PCService.OnStateChanged -= StateHasChanged;
+        PcService.OnStateChanged -= StateHasChanged;
     }
 }

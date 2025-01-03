@@ -1,6 +1,6 @@
 @using PidroCounter.NET.Services;
 @using PidroCounter.NET.Shared;
-@inject PidroCounterStateService PCService
+@inject PidroCounterStateService PcService
 
 <div class="d-flex flex-column align-items-center" style="width: 20%">
     <div class="d-flex flex-row h-100 w-100 justify-content-around">
@@ -15,13 +15,13 @@
     </div>
 
     <Button style="width:80%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;"
-        Color="@(_mode == ScoreMode.Normal ? ButtonColor.Success : ButtonColor.Warning)" Size="Size.Large"
+        Color="@(_mode == ScoreMode.Normal ? ButtonColor.Success : ButtonColor.Warning)" Size="ButtonSize.Large"
         @onclick="OnModeButtonClick">
         @(_mode == ScoreMode.Normal ? "Normal" : "Reverse")
     </Button>
 
     <Button style="width:80%; margin: 2px; border:solid; border-color: black; border-width:thin; z-index: 1;"
-        Color="ButtonColor.Danger" Size="Size.Large" @onclick="OnResetClick">
+        Color="ButtonColor.Danger" Size="ButtonSize.Large" @onclick="OnResetClick">
         Reset
     </Button>
 </div>
@@ -38,8 +38,8 @@
     private void OnModeButtonClick()
     {
         _mode = (ScoreMode)(((int)_mode) ^ 1);
-        PCService.ScoreMode = _mode;
+        PcService.ScoreMode = _mode;
     }
 
-    private void OnResetClick() => PCService.ResetScores();
+    private void OnResetClick() => PcService.ResetScores();
 }
